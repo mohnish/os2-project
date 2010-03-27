@@ -30,15 +30,15 @@ public class Disk {
 
    public int writeBlock(int blockNum, byte[] buffer) throws IOException {
       // writeBlock method
-      // writeSuccess is an integer variable set to 0 if writing is successful
-      // else 1
-      int writeSuccess = 0;
+      // writeSuccess is an integer variable set to 1 if writing is successful
+      // else 0
+      int writeSuccess = 1;
+      boolean dirtyBit = true;
       try {
          // dirtyBit is set to true by default
          // this will be set to false, if there is redundant data either in the
          // cache
          // or on the disk
-         boolean dirtyBit = true;
          if (cacheBuffer.size() < 3) { // 3 indicates the size of the cache
             // adding the blockNum, corresponding buffer and it's corresponding
             // dirtyBit to cache
@@ -50,21 +50,21 @@ public class Disk {
                // corresponding 'buffer' value is already existing either in the
                // cache
                // or on the disk
-               cacheBuffer.get(cacheBuffer.size() - 1).dirtyBit = false;
+               cacheBuffer.get(cacheBuffer.size() - 1).setDirtyBit(false);
             }
             // this method prints the cache contents
             printData();
          } else {// if data being inserted into the queue is at the 4th position
             // of queue
             // seeking to the block number on the disk
-            raFile.seek(cacheBuffer.get(0).blockNum * FileSystem.blockSize);
+            raFile.seek(cacheBuffer.get(0).getBlockNum() * FileSystem.blockSize);
             // checking if the dirtyBit is true/false
             // if false, data is not written to disk, else it is written since
             // it is fresh data
-            if (cacheBuffer.get(0).dirtyBit) {
-               raFile.write(cacheBuffer.get(0).buffer, 0, FileSystem.blockSize);
+            if (cacheBuffer.get(0).isDirtyBit()) {
+               raFile.write(cacheBuffer.get(0).getBuffer(), 0, FileSystem.blockSize);
             }
-            writeSuccess = 0;
+            writeSuccess = 1;
             // this is the queue implementation - FIFO
             // we remove the 1st element i.e. 0th element and add data at the
             // ending of the queue
@@ -80,14 +80,14 @@ public class Disk {
             // position :)
             cacheBuffer.add(new BufferList(blockNum, buffer, dirtyBit));
             if (checkRedundancy()) {
-               cacheBuffer.get(cacheBuffer.size() - 1).dirtyBit = false;
+               cacheBuffer.get(cacheBuffer.size() - 1).setDirtyBit(false);
             }
             // printing the contents of the cache
             printData();
          }
       } catch (EOFException ex) {
          System.out.println("Reached end of file. Cannot write further." + ex);
-         writeSuccess = 1;
+         writeSuccess = 0;
       }
       return writeSuccess;
    }
@@ -143,7 +143,7 @@ public class Disk {
       // disk
       // and false if there is no redundancy
       for (int loop = 0; loop < cacheBuffer.size(); loop++) {
-         System.out.println(cacheBuffer.get(loop).blockNum + " " + new String(cacheBuffer.get(loop).buffer).trim() + " " + cacheBuffer.get(loop).dirtyBit);
+         System.out.println(cacheBuffer.get(loop).getBlockNum() + " " + new String(cacheBuffer.get(loop).getBuffer()).trim() + " " + cacheBuffer.get(loop).isDirtyBit());
       }
    }
 
@@ -162,7 +162,7 @@ public class Disk {
          // in the cache
          // we make sure that there are 2 elements to check :-)
          for (int loop = cacheBuffer.size() - 1; loop > 0; loop--) {
-            if (cacheBuffer.get(cacheBuffer.size() - 1).blockNum == cacheBuffer.get(loop - 1).blockNum && new String(cacheBuffer.get(cacheBuffer.size() - 1).buffer).equals(new String(cacheBuffer.get(loop - 1).buffer))) {
+            if (cacheBuffer.get(cacheBuffer.size() - 1).getBlockNum() == cacheBuffer.get(loop - 1).getBlockNum() && new String(cacheBuffer.get(cacheBuffer.size() - 1).getBuffer()).equals(new String(cacheBuffer.get(loop - 1).getBuffer()))) {
                // set dirtyBit and hence the flag is set to true
                flag = true;
                return flag;
@@ -170,9 +170,9 @@ public class Disk {
          }
       }
       // check the cache value with the value on the disk for redundancy
-      raFile.seek(cacheBuffer.get(cacheBuffer.size() - 1).blockNum * FileSystem.blockSize);
+      raFile.seek(cacheBuffer.get(cacheBuffer.size() - 1).getBlockNum() * FileSystem.blockSize);
       raFile.read(buffer);
-      if (new String(cacheBuffer.get(cacheBuffer.size() - 1).buffer).equals(new String(buffer))) {
+      if (new String(cacheBuffer.get(cacheBuffer.size() - 1).getBuffer()).equals(new String(buffer))) {
          // set flag since we need to set the dirtyBit
          flag = true;
       }
