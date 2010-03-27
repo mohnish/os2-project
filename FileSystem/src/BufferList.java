@@ -13,4 +13,49 @@ public class BufferList {
       this.buffer = buffer;
       this.dirtyBit = dirtyBit;
    }
+
+   /**
+    * @return the blockNum
+    */
+   public int getBlockNum() {
+      return blockNum;
+   }
+
+   /**
+    * @param blockNum
+    *           the blockNum to set
+    */
+   public void setBlockNum(int blockNum) {
+      this.blockNum = blockNum;
+   }
+
+   /**
+    * @return the buffer
+    */
+   public byte[] getBuffer() {
+      return buffer;
+   }
+
+   /**
+    * @param buffer
+    *           the buffer to set
+    */
+   public void setBuffer(byte[] buffer) {
+      this.buffer = buffer;
+   }
+
+   /**
+    * @return the dirtyBit
+    */
+   public boolean isDirtyBit() {
+      return dirtyBit;
+   }
+
+   /**
+    * @param dirtyBit
+    *           the dirtyBit to set
+    */
+   public void setDirtyBit(boolean dirtyBit) {
+      this.dirtyBit = dirtyBit;
+   }
 }
