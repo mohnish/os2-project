@@ -5,7 +5,7 @@
 public class BufferList {
    // this class is used to create the Cache for the program
    int blockNum;
-   byte[] buffer = new byte[FileSystem.blockSize];
+   byte[] buffer = new byte[FileSystem.BLOCK_SIZE];
    boolean dirtyBit;
 
    public BufferList(int blockNum, byte[] buffer, boolean dirtyBit) {
