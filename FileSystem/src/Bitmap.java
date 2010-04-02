@@ -1,9 +1,9 @@
 
 public class Bitmap {
    int blockNum;
-   boolean dataIsPresent;
+   int dataIsPresent;
 
-   public Bitmap(int blockNum, boolean dataIsPresent) {
+   public Bitmap(int blockNum, int dataIsPresent) {
       this.blockNum = blockNum;
       this.dataIsPresent = dataIsPresent;
    }
@@ -25,15 +25,15 @@ public class Bitmap {
    /**
     * @return the dataIsPresent
     */
-   public boolean isDataPresent() {
+   public int isDataPresent() {
       return dataIsPresent;
    }
 
    /**
     * @param dataIsPresent the dataIsPresent to set
     */
-   public void setDataIsPresent(boolean dataIsPresent) {
+   public void setDataIsPresent(int dataIsPresent) {
       this.dataIsPresent = dataIsPresent;
    }
-   
+
 }

@@ -90,6 +90,7 @@ public class FileSystem {
             disk.syncDisk();
             System.out.println("Data Synchronization finished.");
          } else if (readInputValue == 4) {
+            disk.syncDisk();
             disk.bitmap();
          } else {
             /*

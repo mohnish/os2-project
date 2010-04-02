@@ -47,7 +47,7 @@ public class BufferList {
    /**
     * @return the dirtyBit
     */
-   public boolean isDirtyBit() {
+   public boolean isNotDirtyBit() {
       return dirtyBit;
    }
 

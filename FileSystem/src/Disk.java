@@ -71,7 +71,7 @@ public class Disk {
              * false, data is not written to disk, else it is written since it
              * is fresh data
              */
-            if (cacheBuffer.get(0).isDirtyBit()) {
+            if (cacheBuffer.get(0).isNotDirtyBit()) {
                raFile.write(cacheBuffer.get(0).getBuffer(), cacheBuffer.get(0).getBlockNum() * FileSystem.BLOCK_SIZE, FileSystem.BLOCK_SIZE);
             }
             /*
@@ -139,7 +139,7 @@ public class Disk {
        */
       for (int loop = 0; loop < cacheBuffer.size(); loop++) {
          raFile.seek(cacheBuffer.get(loop).getBlockNum() * FileSystem.BLOCK_SIZE);
-         if (cacheBuffer.get(loop).isDirtyBit()) {
+         if (cacheBuffer.get(loop).isNotDirtyBit()) {
             raFile.write(cacheBuffer.get(loop).getBuffer());
          }
       }
@@ -156,7 +156,7 @@ public class Disk {
        * number either in cache or the disk and false if there is no redundancy
        */
       for (int loop = 0; loop < cacheBuffer.size(); loop++) {
-         System.out.println(cacheBuffer.get(loop).getBlockNum() + " " + new String(cacheBuffer.get(loop).getBuffer()).trim() + " " + cacheBuffer.get(loop).isDirtyBit());
+         System.out.println(cacheBuffer.get(loop).getBlockNum() + " " + new String(cacheBuffer.get(loop).getBuffer()).trim() + " " + cacheBuffer.get(loop).isNotDirtyBit());
       }
    }
 
@@ -266,43 +266,36 @@ public class Disk {
        */
       try {
          byte[] buffer = new byte[FileSystem.BLOCK_SIZE];
-         boolean dataIsPresent = false;
-         int counter = 0;
+         int dataIsPresent = 0;
+         int position = 0;
          int blockNum = 0;
          String data = null;
-         int lengthOfData = 0;
+         bitmapData.clear();
 
          for (int loop = 0; loop < FileSystem.NUM_OF_BLOCKS; loop++) {
-            raFile.seek(counter);
+            raFile.seek(position);
             raFile.read(buffer);
             data = new String(buffer).trim();
-            counter = (int) raFile.getFilePointer();
-            System.out.println("counter: " + counter + " length: " + data.length());
-            /*
-             * raFile.seek(raFile.getFilePointer() + FileSystem.BLOCK_SIZE);
-             * raFile.seek(loop);
-             */
+            position = (int) raFile.getFilePointer();
             if (data.length() != 0) {
-               dataIsPresent = true;
+               dataIsPresent = 1;
                blockNum = loop;
                bitmapData.add(new Bitmap(blockNum, dataIsPresent));
             } else {
-               dataIsPresent = false;
+               dataIsPresent = 0;
                blockNum = loop;
                bitmapData.add(new Bitmap(blockNum, dataIsPresent));
             }
-
          }
 
-         data = null;
+         buffer = null;
+         data = "";
          for (Bitmap bit : bitmapData) {
-            System.out.println(bit.getBlockNum() + " " + bit.isDataPresent());
-            raFile.seek(lengthOfData);
-            data = bit.getBlockNum() + " " + bit.isDataPresent() + "\n";
-            lengthOfData = data.length() + 1;
-            raFile.write(data.getBytes());
+            data += bit.isDataPresent() + " ";
          }
-
+         buffer = FileSystem.copyBuffer(data.getBytes());
+         writeBlock(0, buffer);
+         buffer = null;
       } catch (IOException ex) {
          System.out.println("Error with the Bitmap: " + ex);
       }
