@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Disk {
 
@@ -16,7 +15,6 @@ public class Disk {
    int nblocks;
    RandomAccessFile raFile;
    ArrayList<BufferList> cacheBuffer = new ArrayList<BufferList>();
-   ArrayList<Direntry> direntryContents = new ArrayList<Direntry>();
    ArrayList<Bitmap> bitmapData = new ArrayList<Bitmap>();
 
    public Disk(char[] filename, int nblocks) throws IOException {
@@ -121,7 +119,11 @@ public class Disk {
          raFile.seek(blockNum * FileSystem.BLOCK_SIZE);
          raFile.read(buffer);
          // displaying contents of disk on console
-         System.out.println("Block Content on disk:\n" + new String(buffer).trim());
+         if (new String(buffer).trim().length() == 0) {
+            System.out.println("Block Content on disk:\n0");
+         } else {
+            System.out.println("Block Content on disk:\n" + new String(buffer).trim());
+         }
          // readSuccess = 1;
       } catch (IOException e) {
          System.out.println("Error reading: " + e);
@@ -201,63 +203,8 @@ public class Disk {
       }
    }
 
-   // Method to create Directories on the FileSystem
-   protected void createDirectory() {
-      System.out.println("Enter directory name: ");
-      Scanner readDirName = new Scanner(System.in);
-      String directoryName = readDirName.next().toLowerCase().trim();
-
-      /*
-       * Directory name cannot be greater than 8 characters check the length of
-       * the directory name
-       */
-      if (directoryName.length() >= 8) {
-         System.out.println("The directory name cannot be greater than 8 characters in length and cannot have spaces in the name");
-         createDirectory();
-      } else {
-         boolean flag = true;
-         // check if the another directory with the same name exists
-         for (int loop = 0; loop < direntryContents.size(); loop++) {
-            if (directoryName.equals(direntryContents.get(loop).getDirectoryName())) {
-               flag = false;
-               break;
-            }
-         }
-
-         if (flag) {
-            // go ahead and create the directory
-            direntryContents.add(new Direntry(directoryName, null, 0, 0));
-            System.out.println("Directory with the name \"" + directoryName + "\" created.");
-         } else {
-            System.out.println("Another directory with the name \"" + directoryName + "\" already exists");
-            createDirectory();
-         }
-
-      }
-   }
-
-   protected void createLocalFile() {
-      System.out.println("Enter the name of directory in which you wish to create the file ");
-      // Scanner readDirName = new Scanner(System.in);
-
-      System.out.println("Enter file name: ");
-      Scanner readLocalFileName = new Scanner(System.in);
-      String localFileName = readLocalFileName.next().toLowerCase().trim();
-
-      /*
-       * File name cannot be greater than 8 characters check the length of the
-       * file name
-       */
-      if (localFileName.length() >= 8) {
-         System.out.println("The file name cannot be greater than 8 characters in length and cannot have spaces in the name");
-         createLocalFile();
-      } else {
-         direntryContents.add(new Direntry(null, localFileName, 0, 0));
-         System.out.println("File with the name \"" + localFileName + "\" created");
-      }
-   }
-
-   protected void bitmap() {
+   protected void bitmap() throws IOException {
+      syncDisk();
       /*
        * This method is used to find out the blocks having free space. It helps
        * in allocating data among the blocks with free spaces. Each block that
@@ -270,8 +217,9 @@ public class Disk {
          int position = 0;
          int blockNum = 0;
          String data = null;
+         // Remove existing data from the ArrayList: bitmapData
          bitmapData.clear();
-
+         // Adding data into the ArrayList: bitmapData
          for (int loop = 0; loop < FileSystem.NUM_OF_BLOCKS; loop++) {
             raFile.seek(position);
             raFile.read(buffer);
@@ -293,11 +241,13 @@ public class Disk {
          for (Bitmap bit : bitmapData) {
             data += bit.isDataPresent() + " ";
          }
+         // Setting the size of the data to FileSystem.BLOCK_SIZE
          buffer = FileSystem.copyBuffer(data.getBytes());
          writeBlock(0, buffer);
          buffer = null;
       } catch (IOException ex) {
-         System.out.println("Error with the Bitmap: " + ex);
+         System.out.println("Error in the Bitmap: " + ex);
       }
+      syncDisk();
    }
 }
